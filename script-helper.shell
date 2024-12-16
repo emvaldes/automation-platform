@@ -29,6 +29,23 @@
 ## Objective: Printing empty lines (output)
 function newline () { echo -e; return 0; };
 
+function is_base64() {
+    local input_string="$1"
+    # Check if the input_string matches Base64 format and length is a multiple of 4
+    if [[ "${input_string}" =~ ^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)?$ ]] && (( ${#input_string} % 4 == 0 )); then
+      ## Decoding and re-encoding for verification
+      local decoded="$( echo "$input_string" | base64 --decode 2>/dev/null )";
+      ## echo -e "Decoded Input-String: ${decoded}";
+      if [[ $? -eq 0 ]] && \
+         [[ "$(echo "${decoded}" | base64 2>/dev/null)" == "${input_string}" ]]; then
+        ## It's a valid Base64 input-string
+        return 0;
+      fi;
+    fi;
+    ## It's not a Base64 input-string.
+    return 1;
+  }; alias is-base64='is_base64';
+
 function script_helper () {
     ## -------------------------------------------------------------------------
     local oIFS="${IFS}";
@@ -98,17 +115,18 @@ function script_helper () {
             echo -e "${json_object}" \
             | jq --raw-output "${syntax}"
           )";
-        isbase64="$(
-            echo -n "${item_value}" \
-               | base64 --decode 2>/dev/null
-          )";
-        ## Invalid Output in MacOS (silent/empty) but Linux (verbose)
-        ## This has to be trapped or it will affect the console's output.
-        invalid_output=$?;
-        if [[ ( ${invalid_output} -eq 0 ) && \
-              ( ${#isbase64} -gt 0 )
-           ]]; then item_value="${isbase64}";
+        if is_base64 "${item_value}"; then
+          # echo -e "String is Base64 encoded.";
+          local decoded="$( echo "${item_value}" | base64 --decode )";
+          # echo "Decoded string: $decoded";
+          isbase64="$(
+              echo -n "${item_value}" \
+                 | base64 --decode
+            )";
+          # echo -e "Is-Base64: ${isbase64}";
+          # else  echo "String is not Base64 encoded. Skipping."
         fi;
+        if [[ ${#isbase64} -gt 0 ]]; then item_value="${isbase64}"; fi;
         [[ $(( counter++ )) -gt 0 ]] && example+="${output_spacer}";
         example+="--${xitem}";
         if [[ ${#item_value} -gt 0 ]]; then
