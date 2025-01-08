@@ -65,16 +65,19 @@ function script_helper () {
     # echo -e "Example: ${example_mode}";
     # echo -e " Wizard: ${wizard_mode}";
     ## -------------------------------------------------------------------------
-    ## echo -e "Calling Script: ${calling_script}"
-    local script_filename="$( basename ${calling_script})";
+    ## echo -e "Calling Script: ${calling_script}";
+    local script_filename="$( basename ${calling_script} )";
     spanwidth="${#script_filename}";
     local output_spacer="$(
         printf "% $(echo "${#script_filename} + 1" | bc)s"
       )";
+    local script_dirname="$( dirname ${calling_script} )";
+    if [[ "${#script_dirname}" -eq 0 ]]; then script_dirname='.'; fi;
     ## JSON source and object:
-    local json_file="${script_filename%\.*}.json";
+    local json_file="${script_dirname}/${script_filename%\.*}.json";
+    ## echo -e "Script JSON file: ${json_file}";
     local json_object="$(
-        jq --compact-output '.' "${calling_script%\.*}.json"
+        jq --compact-output '.' "${json_file%\.*}.json"
       )";
     local warning="\nWarning: Unable to load '${json_file}' file ! \n";
     abort='false';
