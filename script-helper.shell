@@ -32,7 +32,8 @@ function newline () { echo -e; return 0; };
 function is_base64() {
     local input_string="$1"
     # Check if the input_string matches Base64 format and length is a multiple of 4
-    if [[ "${input_string}" =~ ^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)?$ ]] && (( ${#input_string} % 4 == 0 )); then
+    if [[ "${input_string}" =~ ^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)?$ ]] &&
+       (( ${#input_string} % 4 == 0 )); then
       ## Decoding and re-encoding for verification
       local decoded="$( echo "$input_string" | base64 --decode 2>/dev/null )";
       ## echo -e "Decoded Input-String: ${decoded}";
